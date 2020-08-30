@@ -1,0 +1,40 @@
+language: java
+
+jdk:
+  - oraclejdk8
+
+install: true
+
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
+  - git clone https://github.com/flutter/flutter.git --depth 1
+  - export PATH="$PATH":flutter/bin:flutter/bin/cache/dart-sdk/bin
+  - flutter config --no-analytics
+  - flutter doctor
+  - export FLUTTER_SDK=`pwd`/flutter
+
+# Testing product matrix - see gs://flutter_infra/flutter/intellij/.
+# IDEA_PRODUCT can be one of ideaIC, WebStorm, or android-studio-ide.
+# android-studio-ide-162.3764568-linux.zip is Android Studio 2.3.
+env:
+  # Android Studio
+  #- IDEA_PRODUCT=android-studio-ide IDEA_VERSION=162.3764568 DART_PLUGIN_VERSION=162.2924
+
+  # IntelliJ CE internal version
+  # TODO(devoncarew): Re-enable unit testing on the bots (UNIT_TEST=true).
+  - IDEA_PRODUCT=ideaIC             IDEA_VERSION=2017.1.1    DART_PLUGIN_VERSION=171.4424.63
+
+  # IntelliJ CE stable
+  # TODO(devoncarew): Re-enable unit testing on the bots (UNIT_TEST=true).
+  - IDEA_PRODUCT=ideaIC             IDEA_VERSION=2017.1.3      DART_PLUGIN_VERSION=171.4424.63
+
+  # IntelliJ CE EAP
+  - IDEA_PRODUCT=ideaIC             IDEA_VERSION=171.3780.15   DART_PLUGIN_VERSION=172.2273.2
+
+  # WebStorm supported range
+  - IDEA_PRODUCT=WebStorm           IDEA_VERSION=2017.1.3
+
+# execution
+script: ./tool/travis.sh
