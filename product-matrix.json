@@ -1,0 +1,34 @@
+{
+  "list": [
+    {
+      "comments": "AS 3.1 and IntelliJ 2017.3",
+      "name": "IntelliJ",
+      "version": "2017.3",
+      "ideaProduct": "android-studio",
+      "ideaVersion": "173.4720617",
+      "dartPluginVersion": "173.4700",
+      "sinceBuild": "173.0",
+      "untilBuild": "173.*"
+    },
+    {
+      "comments": "AS 3.2 Beta and IntelliJ 2018.1",
+      "name": "IntelliJ",
+      "version": "2018.1",
+      "ideaProduct": "android-studio",
+      "ideaVersion": "181.4847800",
+      "dartPluginVersion": "181.4892.1",
+      "sinceBuild": "181.0",
+      "untilBuild": "181.*"
+    },
+    {
+      "comments": "IntelliJ 2018.2 EAP",
+      "name": "IntelliJ",
+      "version": "2018.2",
+      "ideaProduct": "ideaIC",
+      "ideaVersion": "182.2574.2",
+      "dartPluginVersion": "182.2371.1",
+      "sinceBuild": "182.0",
+      "untilBuild": "182.*"
+    }
+  ]
+}
