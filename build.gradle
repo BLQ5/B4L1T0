@@ -1,0 +1,57 @@
+/*
+ * Copyright 2019 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+plugins {
+  id "org.jetbrains.intellij" version "0.4.21"
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+apply plugin: "org.jetbrains.intellij"
+
+group 'io.flutter'
+version flutterPluginVersion
+
+intellij {
+  // This adds nullability assertions, but also compiles forms.
+  instrumentCode = true
+  updateSinceUntilBuild = false
+  localPath "${project.rootDir.absolutePath}/artifacts/$ide"
+  downloadSources false
+  def pluginList = [project(':flutter-idea'), "java", "Dart:$dartVersion", "properties", "junit",
+                    "Kotlin", "gradle", "android", "Groovy", "smali", "IntelliLang"]
+  if (ide == 'android-studio') {
+    pluginList.add(project(':flutter-studio'))
+  }
+  plugins = pluginList
+}
+
+dependencies {
+  implementation project('flutter-idea')
+  if (ide == 'android-studio') {
+    implementation project('flutter-studio')
+  }
+}
+
+sourceSets {
+}
+
+test {
+  // Uncomment this line to disable tests on the bots.
+  //ignoreFailures true
+}
+
+buildSearchableOptions.enabled = false
+
+// See https://github.com/gradle/gradle/issues/9202
+// This does not clean sub-projects.
+buildPlugin.dependsOn clean
+
+// Need to delete cache so sub-project tests get run.
+test.dependsOn clean
