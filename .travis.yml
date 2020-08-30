@@ -1,0 +1,26 @@
+language: java
+
+jdk:
+  - oraclejdk8
+
+install: true
+
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
+  - git clone https://github.com/flutter/flutter.git --depth 1
+  - export PATH="$PATH":`pwd`/flutter/bin:`pwd`/flutter/bin/cache/dart-sdk/bin
+  - flutter config --no-analytics
+  - flutter doctor
+  - export FLUTTER_SDK=`pwd`/flutter
+
+# execution
+script: ./tool/travis.sh
+
+# Testing product matrix; the values should match the version field in the
+# product-matrix.json file.
+env:
+  - IDEA_VERSION=3.0
+  - IDEA_VERSION=3.1
+  - IDEA_VERSION=2018.1
