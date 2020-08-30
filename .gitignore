@@ -1,0 +1,12 @@
+out/
+artifacts/
+build/
+flutter-intellij.jar
+packages
+.packages
+pubspec.lock
+.pub/
+.idea/workspace.xml
+.idea/shelf
+.idea/emacs.xml
+material-design-icons/

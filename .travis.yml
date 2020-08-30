@@ -1,0 +1,30 @@
+language: java
+
+jdk:
+  - oraclejdk8
+
+install: true
+
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
+  - git clone https://github.com/flutter/flutter.git --depth 1
+  - export PATH="$PATH":flutter/bin:flutter/bin/cache/dart-sdk/bin
+  - flutter config --no-analytics
+  - flutter doctor
+  - export FLUTTER_SDK=`pwd`/flutter
+
+# Testing product matrix - see gs://flutter_infra/flutter/intellij/.
+# IDEA_PRODUCT can be one of ideaIC, WebStorm, or android-studio-ide.
+# android-studio-ide-162.3616766-linux.zip is Android Studio 2.3 beta 3
+env:
+  - IDEA_PRODUCT=android-studio-ide IDEA_VERSION=162.3671887 DART_PLUGIN_VERSION=162.2924
+  # TODO(devoncarew): Re-enable unit testing on the bots (UNIT_TEST=true).
+  - IDEA_PRODUCT=ideaIC             IDEA_VERSION=2016.3.1    DART_PLUGIN_VERSION=163.13137
+  # TODO(devoncarew): Re-enable unit testing on the bots (UNIT_TEST=true).
+  - IDEA_PRODUCT=ideaIC             IDEA_VERSION=2016.3.4    DART_PLUGIN_VERSION=163.13137
+  - IDEA_PRODUCT=WebStorm           IDEA_VERSION=2016.3.3    DART_PLUGIN_VERSION=163.12024.7
+
+# execution
+script: ./tool/travis.sh
