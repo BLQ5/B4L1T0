@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../intellij/intellij-plugins/Dart/Dart-plugin.iml" filepath="$PROJECT_DIR$/../../intellij/intellij-plugins/Dart/Dart-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flutter-intellij.iml" filepath="$PROJECT_DIR$/flutter-intellij.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flutter-studio/flutter-studio.iml" filepath="$PROJECT_DIR$/flutter-studio/flutter-studio.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tool/plugin/plugin.iml" filepath="$PROJECT_DIR$/tool/plugin/plugin.iml" />
+    </modules>
+  </component>
+</project>
