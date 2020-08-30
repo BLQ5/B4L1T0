@@ -1,0 +1,490 @@
+<idea-plugin>
+  <id>io.flutter</id>
+  <name>Flutter</name>
+  <description>Support for developing Flutter applications. Flutter gives developers an easy and productive way to build and deploy
+    cross-platform, high-performance mobile apps on both Android and iOS.
+  </description>
+  <vendor url="https://github.com/flutter/flutter-intellij">flutter.io</vendor>
+
+  <category>Custom Languages</category>
+
+  <version>18.4</version>
+
+  <idea-version since-build="172.1" until-build="173.*"/>
+
+  <!-- plugin compatibility -->
+  <!-- see: http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html -->
+  
+
+  <change-notes>
+    <![CDATA[
+
+18.4:
+<ul>
+  <li>fixed a npe in the FlutterInitializer class
+</ul>
+
+18.3:
+<ul>
+  <li>fixed a build problem that prevented the Android Studio plugin from creating projects
+</ul>
+
+18.2:
+<ul>
+  <li>fixed an issue where reload on save could not be disabled</li>
+  <li>fixed an exception that could occur on project creation</li>
+</ul>
+
+18.1:
+<ul>
+  <li>fixed hot reload issue when multiple project windows were open</li>
+  <li>fixed 'Open Observatory timeline' action</li>
+</ul>
+
+18.0:
+<ul>
+  <li>Android Studio support</li>
+  <li>for flutter launches, support passing in a --flavor param</li>
+  <li>reload on save now on by default</li>
+  <li>improved and reorganized the Flutter view's toolbar</li>
+  <li>analysis toast provides a new hyperlink to open the analysis view</li>
+  <li>reloads disallowed while another reload is taking place</li>
+  <li>support to show referenced flutter plugin in the project view</li>
+</ul>
+
+17.0:
+<ul>
+  <li>improved new project wizard</li>
+  <li>improvements to the reload-on-save behavior</li>
+  <li>improved and reorganized the Flutter view's toolbar</li>
+  <li>fixes to the Flutter icon decorations in the editor ruler</li>
+  <li>fixes to group handling for widget tests</li>
+  <li>display a ballon toast if there are analysis issues when running apps</li>
+  <li>added a toggle inspect mode toolbar button</li>
+  <li>speed improvements to the device switcher pulldown</li>
+</ul>
+
+16.0:
+<ul>
+  <li>device list refresh fixes</li>
+  <li>support for flutter run in profile and release modes</li>
+  <li>support for reading the android sdk location from flutter tools</li>
+  <li>support for discovering and running Flutter widget tests</li>
+  <li>Flutter test console improvements</li>
+  <li>support for running flutter doctor in a Bazel workspace</li>
+  <li>test file icon annotations</li>
+  <li>support for locating a missing flutter SDK in .packages files</li>
+  <li>open emulator action sorting</li>
+  <li>test state icons for Flutter tests</li>
+  <li>editor line markers for Flutter tests</li>
+  <li>added a new restart daemon action</li>
+  <li>open emulator action sorting</li>
+  <li>run/debug button enablement improvements</li>
+  <li>fix to ensure the `Install SDK…` action is always visible</li>
+  <li>support for running a single Flutter test, by name</li>
+  <li>install creation progress UI fixes</li>
+  <li>project creation fixes for smalll IDEs</li>
+  <li>fixes to android emulator launching</li>
+</ul>
+
+15.2:
+<ul>
+  <li>fix for an exception in the new project wizard in WebStorm (#1234)</li>
+</ul>
+
+15.1:
+<ul>
+  <li>fix for a file watching related NPE on build systems using Bazel (#1191)</li>
+</ul>
+
+15.0:
+<ul>
+  <li>UI for starting android emulators from the device pull-down</li>
+  <li>workflow for installing a Flutter SDK from the New Flutter Project wizard</li>
+  <li>Flutter SDK configuration inspection improvements</li>
+  <li>improved error reporting on project creation failures</li>
+  <li>improved app reload feedback</li>
+  <li>Flutter View toolbar tweaks</li>
+  <li>initial support for running unit tests with `flutter test`</li>
+  <li>new action to open iOS resources in Xcode</li>
+</ul>
+
+14.0:
+<ul>
+  <li>user toggleable option to enable more verbose debug logging of Flutter app runs</li>
+  <li>fixes to the new Flutter Module workflow</li>
+  <li>improved console logging on Flutter app termination</li>
+  <li>improved error reporting on Observatory connection and Flutter View open failures</li>
+  <li>removed Flutter SDK settings from default projects</li>
+  <li>improved project name validation (to align with checks in `flutter create`)</li>
+  <li>console hyperlinks for Xcode resources</li>
+  <li>fix to inherit Android JDK setting when creating Flutter projects</li>
+  <li>fix to ensure Flutter console filtering is only applied to Flutter consoles</li>
+  <li>improved device daemon interop</li>
+  <li>improved SDK version checking</li>
+</ul>
+
+13.1:
+<ul>
+  <li>project opening improvements</li>
+  <li>new action to open the Flutter view</li>
+  <li>module name validation on creation</li>
+  <li>fix to ensure all open files are saved to disk before running Flutter actions</li>
+  <li>improved progress reporting during calls to 'flutter create'</li>
+  <li>miscellaneous fixes and analytics improvements</li>
+</ul>
+
+13.0:
+<ul>
+  <li>small IDE support improvements</li>
+  <li>android module enablement on project creation</li>
+  <li>project explorer icon customizations</li>
+  <li>support for Flutter drop frame debugging</li>
+  <li>hot reload UX improvements</li>
+  <li>Bazel run config refinements</li>
+  <li>support for toggling OS in the Flutter View</li>
+  <li>Flutter CLI interop fixes (proper env setup)</li>
+  <li>color icon improvements</li>
+  <li>bump to require 2017.1+</li>
+</ul>
+
+12.1:
+<ul>
+  <li>fix an issue with enabling Dart support for modules from the Flutter settings page</li>
+</ul>
+
+12.0:
+<ul>
+  <li>support for IDEA `2017.1`</li>
+  <li>new Flutter `stless`, `stful`, and `stanim` live templates</li>
+  <li>new assists for editing the widget hierarchy:
+    <ul>
+      <li>move widget up or down</li>
+      <li>re-parent widget or list of widgets</li>
+      <li>convert `child:` keyword to `children:`</li>
+    </ul>
+  </li>
+  <li>support for specifying "Additional Args" to Flutter application launches</li>
+  <li>default run configuration creation on project open (when possible)</li>
+  <li>device menu improvements</li>
+  <li>miscellaneous bug fixes</li>
+</ul>
+
+0.1.11.2:
+<ul>
+  <li>fix an NPE in the Flutter View when launching an app</li>
+</ul>
+
+0.1.11.1:
+<ul>
+  <li>fix to a use after dispose exception in the Flutter View</li>
+</ul>
+
+0.1.11:
+<ul>
+  <li>Flutter tool window badging when active</li>
+  <li>iOS console output folding improvements</li>
+  <li>Flutter reload actions added to main "Run" menu</li>
+  <li>devices menu fixes</li>
+  <li>improved tooltips for pubspec editor notifications</li>
+</ul>
+
+0.1.10:
+<ul>
+  <li>fixes to pubspec timestamp checking</li>
+  <li>analytics events for run, debug, and process stop</li>
+  <li>fix to `flutter doctor` to better support multiple runs</li>
+  <li>fix to the reload action for apps launched from 'run'</li>
+</ul>
+
+0.1.9.1:
+<ul>
+  <li>fix button enablement in the Flutter View</li>
+  <li>fix the reload action for apps launched from 'run'</li>
+</ul>
+
+0.1.9:
+<ul>
+  <li>added a 'Flutter' view to allow users to toggle Flutter framework debugging features while running<li>
+  <li>fixes to the visibility of the "Tools" menu</li>
+  <li>inspection to detect pubspec modifications (that may imply out of date package dependencies)</li>
+  <li>key bindings fixes</li>
+  <li>support for opening source folders as Flutter projects (using "Open...")</li>
+  <li>run and debug button enablement fixes</li>
+  <li>fix to bring iOS simulator to front on run/debug</li>
+  <li>fix to handle devfs breakpoints for projects without pubspecs</li>
+</ul>
+
+0.1.8.1:
+<ul>
+  <li>improve handling of breakpoints for the bazel launch config</li>
+</ul>
+
+0.1.8:
+<ul>
+  <li>fixed race condition in console reporting on project creation</li>
+  <li>improved interaction between Flutter and Dart plugins during project creation (no more unnecessary nags to run pub)</li>
+  <li>improvements to version checking</li>
+  <li>settings UI refinements</li>
+  <li>new "Help > Flutter Plugin" top-level menu</li>
+  <li>added reload/restart actions in the main toolbar</li>
+  <li>improved console folding for iOS messages</li>
+  <li>fixed NPE in project creation</li>
+</ul>
+
+0.1.7:
+<ul>
+  <li>improved console output folding when running iOS apps</li>
+  <li>actions for Flutter package get and package update</li>
+  <li>a new top level Flutter menu (Tools>Flutter) with common Flutter actions</li>
+  <li>updated hot reload and restart icons</li>
+  <li>editor annotations showing Flutter colors and icons in the editor ruler</li>
+  <li>better console filtering (less noise)</li>
+  <li>improved detection of Flutter projects missing a Flutter module type</li>
+</ul>
+
+0.1.6:
+<ul>
+  <li>reload and restart keybinding mapping fixes</li>
+  <li>new buttter bar with actions for flutter.yaml files</li>
+  <li>"run" behavior re-designed to support reload</li>
+  <li>improved console output for reloading and restarting</li>
+  <li>miscellaneous fixes and stability improvements</li>
+</ul>
+
+0.1.5:
+<ul>
+  <li>console filtering for flutter run output</li>
+  <li>improved messaging for incomplete Flutter SDK configirations</li>
+  <li>support for new application events produced by Flutter tools</li>
+  <li>fixed duplicate service protocol console logging</li>
+  <li>Flutter run configuration cleanup</li>
+  <li>fixed NPE in showing progress from Flutter tools tasks</li>
+  <li>migration away from storing Flutter SDK location in an application library</li>
+</ul>
+
+0.1.4.1:
+<ul>
+  <li>removed an exception notification when we receive unknown events from the flutter tools</li>
+</ul>
+
+0.1.4:
+<ul>
+  <li>first public release</li>
+</ul>
+
+0.1.3:
+<ul>
+  <li>notifications for projects that look like Flutter apps but do not have Flutter enabled</li>
+  <li>improved Flutter preference UI and SDK configuration</li>
+  <li>IDEA version constraints to ensure that the plugin cannot be installed in incompatible IDEA versions</li>
+</ul>
+
+0.1.2:
+<ul>
+  <li>fixed device selector filtering</li>
+</ul>
+
+0.1.1:
+<ul>
+  <li>removed second (redundant) "open observatory" button</li>
+  <li>filtering to ensure the Flutter device selector only appears for Flutter projects</li>
+  <li>fixed hangs on app re-runs</li>
+</ul>
+
+0.1.0:
+<ul>
+  <li>initial alpha release</li>
+</ul>
+ ]]>
+  </change-notes>
+
+  <depends>Dart</depends>
+
+  <!-- Contributes IDEA-specific features and implementations. -->
+  <depends optional="true" config-file="idea-contribs.xml">com.intellij.modules.java</depends>
+  <!-- Contributes Android Studio-specific features and implementations. -->
+  <depends optional="true" config-file="studio-contribs.xml">com.intellij.modules.androidstudio</depends>
+  <!-- depends optional="true" config-file="studio-contribs.xml">com.android.tools.apk</depends --><!-- dev-channel sources only -->
+
+  <!-- Everything following should be SmallIDE-friendly.-->
+  <!-- See: http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html -->
+
+  <actions>
+    <group id="Flutter.MainToolbarActions">
+      <separator/>
+      <action id="Flutter.DeviceSelector" class="io.flutter.actions.DeviceSelectorAction"
+              description="Flutter Device Selection"
+              icon="FlutterIcons.Phone"/>
+      <separator/>
+      <add-to-group anchor="before" group-id="RunContextGroup" relative-to-action="RunConfiguration"/>
+      <add-to-group anchor="before" group-id="ToolbarRunGroup" relative-to-action="RunConfiguration"/>
+    </group>
+
+    <group id="FlutterToolsActionGroup" class="io.flutter.actions.FlutterToolsActionGroup" popup="true"
+           text="Flutter" description="Flutter Tools" icon="FlutterIcons.Flutter">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+      <action id="flutter.gettingStarted" class="io.flutter.actions.FlutterGettingStartedAction"
+              text="Getting Started"
+              description="View the online getting started documentation"/>
+      <separator/>
+      <action id="flutter.upgrade" class="io.flutter.actions.FlutterUpgradeAction"
+              text="Flutter Upgrade"
+              description="Run 'flutter upgrade'"/>
+      <action id="flutter.doctor" class="io.flutter.actions.FlutterDoctorAction"
+              text="Flutter Doctor"
+              description="Run 'flutter doctor'"/>
+      <separator/>
+      <action id="flutter.packages.get" class="io.flutter.actions.FlutterPackagesGetAction"
+              text="Flutter Packages Get"
+              description="Run 'flutter packages get'"/>
+      <action id="flutter.packages.upgrade" class="io.flutter.actions.FlutterPackagesUpgradeAction"
+              text="Flutter Packages Upgrade"
+              description="Run 'flutter packages upgrade'"/>
+      <separator/>
+      <action id="flutter.androidstudio.open" class="io.flutter.actions.OpenInAndroidStudioAction"
+              text="Open Project in Android Studio…"
+              description="Open project in Android Studio"/>
+      <action id="flutter.xcode.open" class="io.flutter.actions.OpenInXcodeAction"
+              text="Open Project in Xcode…"
+              description="Open project in Xcode"/>
+      <separator/>
+      <action id="flutter.submitFeedback" class="io.flutter.actions.FlutterSubmitFeedback"
+              text="Submit Feedback…"
+              description="Provide feedback for the Flutter plugin"/>
+    </group>
+
+    <!-- project explorer actions -->
+    <group id="FlutterPackagesExplorerActionGroup" class="io.flutter.actions.FlutterPackagesExplorerActionGroup"> 
+      <separator/>
+      <group text="Flutter" description="Flutter Tools" icon="FlutterIcons.Flutter" popup="true">
+        <separator/>
+        <reference ref="flutter.packages.get"/>
+        <reference ref="flutter.packages.upgrade"/>
+        <separator/>
+        <reference ref="flutter.androidstudio.open"/>
+        <reference ref="flutter.xcode.open"/>
+        <separator/>
+        <reference ref="flutter.upgrade"/>
+        <reference ref="flutter.doctor"/>
+      </group>
+      <separator/>
+      <add-to-group group-id="ProjectViewPopupMenu" relative-to-action="AddToFavorites" anchor="before"/>
+    </group>
+    <group id="FlutterExternalIdeActionGroup" class="io.flutter.actions.FlutterExternalIdeActionGroup">
+      <separator/>
+      <group text="Flutter" description="Flutter Tools" icon="FlutterIcons.Flutter" popup="true">
+        <reference ref="flutter.androidstudio.open"/>
+        <reference ref="flutter.xcode.open"/>
+      </group>
+      <separator/>
+      <add-to-group group-id="ProjectViewPopupMenu" relative-to-action="AddToFavorites" anchor="before"/>
+    </group>
+
+    <!-- main toolbar run actions -->
+    <action id="Flutter.Toolbar.ReloadAction" class="io.flutter.actions.ReloadFlutterAppRetarget"
+            description="Reload"
+            icon="FlutterIcons.HotReload">
+      <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt SEMICOLON"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="ctrl BACK_SLASH"/>
+    </action>
+
+    <!-- run menu actions -->
+    <group id="Flutter.MenuActions.Run">
+      <separator/>
+      <reference ref="Flutter.Toolbar.ReloadAction"/>
+      <action id="Flutter.Toolbar.RestartAction" class="io.flutter.actions.RestartFlutterAppRetarget"
+              description="Restart"
+              icon="AllIcons.Actions.Restart">
+        <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift alt SEMICOLON"/>
+        <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift BACK_SLASH"/>
+      </action>
+      <action id="Flutter.Menu.RunProfileAction" class="io.flutter.actions.RunProfileFlutterApp"
+              description="Flutter Run Profile Mode"
+              icon="AllIcons.Actions.Profile">
+      </action>
+      <action id="Flutter.Menu.RunReleaseAction" class="io.flutter.actions.RunReleaseFlutterApp"
+              description="Flutter Run Release Mode"
+              icon="AllIcons.Actions.Execute">
+      </action>
+      <separator/>
+      <add-to-group group-id="RunMenu" anchor="after" relative-to-action="Stop"/>
+    </group>
+
+    <!-- help menu -->
+    <action class="io.flutter.actions.FlutterGettingStartedAction" id="Flutter.FlutterHelp" text="Flutter Plugin Help">
+      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics"/>
+    </action>
+
+    <action id="io.flutter.RestartDaemon" class="io.flutter.actions.RestartFlutterDaemonAction"
+            text="Restart Flutter Daemon" description="Restart Flutter Daemon" icon="FlutterIcons.Flutter">
+    </action>
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <postStartupActivity implementation="io.flutter.ProjectOpenActivity"/>
+    <postStartupActivity implementation="io.flutter.FlutterInitializer"/>
+    <projectService serviceInterface="io.flutter.run.daemon.DeviceService"
+                    serviceImplementation="io.flutter.run.daemon.DeviceService"/>
+    <projectService serviceInterface="io.flutter.bazel.WorkspaceCache"
+                    serviceImplementation="io.flutter.bazel.WorkspaceCache"/>
+
+    <configurationType implementation="io.flutter.run.FlutterRunConfigurationType"/>
+    <runConfigurationProducer implementation="io.flutter.run.FlutterRunConfigurationProducer"/>
+    <programRunner implementation="io.flutter.run.SdkRunner"/>
+
+    <configurationType implementation="io.flutter.run.bazel.FlutterBazelRunConfigurationType"/>
+    <programRunner implementation="io.flutter.run.bazel.BazelRunner"/>
+
+    <configurationType implementation="io.flutter.run.test.TestConfigType"/>
+    <runConfigurationProducer implementation="io.flutter.run.test.TestConfigProducer"/>
+    <programRunner implementation="io.flutter.run.test.DebugTestRunner"/>
+    <runLineMarkerContributor language="Dart" implementationClass="io.flutter.run.test.FlutterTestLineMarkerContributor"/>
+
+    <defaultLiveTemplatesProvider implementation="io.flutter.template.FlutterLiveTemplatesProvider"/>
+    <liveTemplateContext implementation="io.flutter.template.DartToplevelTemplateContextType"/>
+
+    <!-- IDEA only -->
+    <moduleBuilder builderClass="io.flutter.module.FlutterModuleBuilder"/>
+
+    <!-- Small IDE support (ex: WebStorm) -->
+    <directoryProjectGenerator implementation="io.flutter.module.FlutterSmallIDEProjectGenerator"/>
+
+    <projectService serviceImplementation="io.flutter.sdk.FlutterSdkManager"/>
+
+    <applicationService serviceInterface="io.flutter.settings.FlutterSettings"
+                    serviceImplementation="io.flutter.settings.FlutterSettings"
+                    overrides="false"/>
+
+    <console.folding implementation="io.flutter.console.FlutterConsoleFolding"/>
+
+    <projectConfigurable groupId="language" instance="io.flutter.sdk.FlutterSettingsConfigurable"
+                         id="flutter.settings" key="flutter.title" bundle="io.flutter.FlutterBundle" nonDefaultProject="true"/>
+    <annotator language="Dart" implementationClass="io.flutter.editor.FlutterEditorAnnotator"/>
+    <errorHandler implementation="io.flutter.FlutterErrorReportSubmitter"/>
+
+    <toolWindow id="Flutter" anchor="right" icon="FlutterIcons.Flutter_13"
+                factoryClass="io.flutter.view.FlutterViewFactory"
+                conditionClass="io.flutter.view.FlutterViewCondition"/>
+    <projectService serviceInterface="io.flutter.view.FlutterView"
+                    serviceImplementation="io.flutter.view.FlutterView"
+                    overrides="false"/>
+    <projectOpenProcessor implementation="io.flutter.project.FlutterProjectOpenProcessor" order="first"/>
+
+    <localInspection bundle="io.flutter.FlutterBundle" key="outdated.dependencies.inspection.name"
+                     groupName="Flutter" enabledByDefault="true" level="WARNING" language="Dart"
+                     implementationClass="io.flutter.inspections.FlutterDependencyInspection"/>
+
+    <editorNotificationProvider implementation="io.flutter.editor.FlutterPubspecNotificationProvider"/>
+    <editorNotificationProvider implementation="io.flutter.inspections.SdkConfigurationNotificationProvider"/>
+
+    <projectService serviceInterface="io.flutter.run.FlutterReloadManager"
+                    serviceImplementation="io.flutter.run.FlutterReloadManager"
+                    overrides="false"/>
+
+    <iconProvider implementation="io.flutter.project.FlutterIconProvider" order="first"/>
+
+    <library.type implementation="io.flutter.sdk.FlutterPluginLibraryType"/>
+  </extensions>
+</idea-plugin>
