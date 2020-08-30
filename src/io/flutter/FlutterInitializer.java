@@ -1,0 +1,353 @@
+/*
+ * Copyright 2016 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+package io.flutter;
+
+import com.intellij.ProjectTopics;
+import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
+import com.intellij.notification.NotificationsConfiguration;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.ModuleListener;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.messages.MessageBusConnection;
+import io.flutter.analytics.Analytics;
+import io.flutter.analytics.ToolWindowTracker;
+import io.flutter.android.IntelliJAndroidSdk;
+import io.flutter.devtools.WebDevManager;
+import io.flutter.editor.FlutterSaveActionsManager;
+import io.flutter.logging.FlutterConsoleLogManager;
+import io.flutter.perf.FlutterWidgetPerfManager;
+import io.flutter.pub.PubRoot;
+import io.flutter.pub.PubRoots;
+import io.flutter.run.FlutterReloadManager;
+import io.flutter.run.FlutterRunNotifications;
+import io.flutter.run.daemon.DeviceService;
+import io.flutter.samples.FlutterSampleManager;
+import io.flutter.sdk.FlutterPluginsLibraryManager;
+import io.flutter.sdk.FlutterSdk;
+import io.flutter.sdk.FlutterSdkManager;
+import io.flutter.settings.FlutterSettings;
+import io.flutter.survey.FlutterSurveyNotifications;
+import io.flutter.utils.AndroidUtils;
+import io.flutter.utils.FlutterModuleUtils;
+import io.flutter.view.FlutterPerfViewFactory;
+import io.flutter.view.FlutterViewFactory;
+import java.util.UUID;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Runs actions after the project has started up and the index is up to date.
+ *
+ * @see ProjectOpenActivity for actions that run earlier.
+ * @see io.flutter.project.FlutterProjectOpenProcessor for additional actions that
+ * may run when a project is being imported.
+ */
+public class FlutterInitializer implements StartupActivity {
+  private static final String analyticsClientIdKey = "io.flutter.analytics.clientId";
+  private static final String analyticsOptOutKey = "io.flutter.analytics.optOut";
+  private static final String analyticsToastShown = "io.flutter.analytics.toastShown";
+
+  private static Analytics analytics;
+
+  @Override
+  public void runActivity(@NotNull Project project) {
+    // TODO(messick): Remove 'FlutterUtils.isAndroidStudio()' after Android Q sources are published.
+    if (FlutterUtils.isAndroidStudio() && !FlutterModuleUtils.hasFlutterModule(project)) {
+      MessageBusConnection connection = project.getMessageBus().connect(project);
+      connection.subscribe(ProjectTopics.MODULES, new ModuleListener() {
+        @Override
+        public void moduleAdded(@NotNull Project proj, @NotNull Module mod) {
+          if (AndroidUtils.FLUTTER_MODULE_NAME.equals(mod.getName())) {
+            connection.disconnect();
+            AppExecutorUtil.getAppExecutorService().execute(() -> {
+              AndroidUtils.enableCoeditIfAddToAppDetected(project);
+            });
+          }
+        }
+      });
+    }
+
+    // Convert all modules of deprecated type FlutterModuleType.
+    if (FlutterModuleUtils.convertFromDeprecatedModuleType(project)) {
+      // If any modules were converted over, create a notification
+      FlutterMessages.showInfo(
+        FlutterBundle.message("flutter.initializer.module.converted.title"),
+        "Converted from '" +
+        FlutterModuleUtils.DEPRECATED_FLUTTER_MODULE_TYPE_ID +
+        "' to '" +
+        FlutterModuleUtils.getModuleTypeIDForFlutter() +
+        "'.");
+    }
+
+    // Disable the 'Migrate Project to Gradle' notification.
+    FlutterUtils.disableGradleProjectMigrationNotification(project);
+
+    // Start watching for devices.
+    DeviceService.getInstance(project);
+
+    // Start watching for Flutter debug active events.
+    FlutterViewFactory.init(project);
+
+    FlutterPerfViewFactory.init(project);
+
+    // If the project declares a Flutter dependency, do some extra initialization.
+    boolean hasFlutterModule = false;
+    boolean hasFlutterWebModule = false;
+
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      final boolean declaresFlutter = FlutterModuleUtils.declaresFlutter(module);
+      final boolean declaresFlutterWeb = FlutterModuleUtils.declaresFlutterWeb(module);
+
+      hasFlutterModule = hasFlutterModule || declaresFlutter;
+      hasFlutterWebModule = hasFlutterWebModule || declaresFlutterWeb;
+
+      if (!declaresFlutter && !declaresFlutterWeb) {
+        continue;
+      }
+
+      // Ensure SDKs are configured; needed for clean module import.
+      FlutterModuleUtils.enableDartSDK(module);
+
+      for (PubRoot root : PubRoots.forModule(module)) {
+        // Set Android SDK.
+        if (root.hasAndroidModule(project)) {
+          ensureAndroidSdk(project);
+        }
+
+        // Setup a default run configuration for 'main.dart' (if it's not there already and the file exists).
+        FlutterModuleUtils.autoCreateRunConfig(project, root);
+
+        // If there are no open editors, show main.
+        if (FileEditorManager.getInstance(project).getOpenFiles().length == 0) {
+          FlutterModuleUtils.autoShowMain(project, root);
+        }
+      }
+    }
+
+    if (hasFlutterModule) {
+      // Ensure a run config is selected and ready to go.
+      FlutterModuleUtils.ensureRunConfigSelected(project);
+    }
+
+    if (hasFlutterModule) {
+      // Check to see if we're on a supported version of Android Studio; warn otherwise.
+      performAndroidStudioCanaryCheck();
+    }
+
+    // Check if the project is a flutter web project; if so, install webdev.
+    if (hasFlutterWebModule) {
+      installWebDev(project);
+    }
+
+    FlutterRunNotifications.init(project);
+
+    // Start watching for survey triggers.
+    FlutterSurveyNotifications.init(project);
+
+    // Start the widget perf manager.
+    FlutterWidgetPerfManager.init(project);
+
+    // Load the sample index.
+    FlutterSampleManager.initialize(project);
+
+    // Watch save actions for reload on save.
+    FlutterReloadManager.init(project);
+
+    // Watch save actions for format on save.
+    FlutterSaveActionsManager.init(project);
+
+    // Start watching for project structure and .packages file changes.
+    final FlutterPluginsLibraryManager libraryManager = new FlutterPluginsLibraryManager(project);
+    libraryManager.startWatching();
+
+    // Initialize the analytics notification group.
+    NotificationsConfiguration.getNotificationsConfiguration().register(
+      Analytics.GROUP_DISPLAY_ID,
+      NotificationDisplayType.STICKY_BALLOON,
+      false);
+
+    // Set our preferred settings for the run console.
+    FlutterConsoleLogManager.initConsolePreferences();
+
+    // Initialize analytics.
+    final PropertiesComponent properties = PropertiesComponent.getInstance();
+    if (!properties.getBoolean(analyticsToastShown)) {
+      properties.setValue(analyticsToastShown, true);
+
+      final Notification notification = new Notification(
+        Analytics.GROUP_DISPLAY_ID,
+        "Welcome to Flutter!",
+        FlutterBundle.message("flutter.analytics.notification.content"),
+        NotificationType.INFORMATION,
+        (notification1, event) -> {
+          if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            if ("url".equals(event.getDescription())) {
+              BrowserUtil.browse("https://www.google.com/policies/privacy/");
+            }
+          }
+        });
+      notification.addAction(new AnAction("Sounds good!") {
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent event) {
+          notification.expire();
+          final Analytics analytics = getAnalytics();
+          // We only track for flutter projects.
+          if (FlutterModuleUtils.declaresFlutter(project)) {
+            ToolWindowTracker.track(project, analytics);
+          }
+        }
+      });
+      notification.addAction(new AnAction("No thanks") {
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent event) {
+          notification.expire();
+          setCanReportAnalytics(false);
+        }
+      });
+      Notifications.Bus.notify(notification);
+    }
+    else {
+      // We only track for flutter projects.
+      if (FlutterModuleUtils.declaresFlutter(project)) {
+        ToolWindowTracker.track(project, getAnalytics());
+      }
+    }
+  }
+
+  private void installWebDev(@NotNull Project project) {
+    final FlutterSdk flutterSdk = FlutterSdk.getFlutterSdk(project);
+
+    final WebDevManager webDevManager = WebDevManager.getInstance(project);
+
+    if (flutterSdk != null) {
+      if (!webDevManager.hasInstalledWebDev()) {
+        webDevManager.installWebdev();
+      }
+    }
+    else {
+      // Listen for sdk changes; on a valid flutter sdk, attempt to install webdev.
+      FlutterSdkManager.getInstance(project).addListener(new FlutterSdkManager.Listener() {
+        boolean installAttempted = false;
+
+        @Override
+        public void flutterSdkAdded() {
+          final FlutterSdk flutterSdk = FlutterSdk.getFlutterSdk(project);
+          if (flutterSdk == null) {
+            return;
+          }
+
+          if (!installAttempted && !webDevManager.hasInstalledWebDev()) {
+            installAttempted = true;
+
+            webDevManager.installWebdev();
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Automatically set Android SDK based on ANDROID_HOME.
+   */
+  private void ensureAndroidSdk(@NotNull Project project) {
+    if (ProjectRootManager.getInstance(project).getProjectSdk() != null) {
+      return; // Don't override user's settings.
+    }
+
+    final IntelliJAndroidSdk wanted = IntelliJAndroidSdk.fromEnvironment();
+    if (wanted == null) {
+      return; // ANDROID_HOME not set or Android SDK not created in IDEA; not clear what to do.
+    }
+
+    ApplicationManager.getApplication().runWriteAction(() -> wanted.setCurrent(project));
+  }
+
+  @NotNull
+  public static Analytics getAnalytics() {
+    if (analytics == null) {
+      final PropertiesComponent properties = PropertiesComponent.getInstance();
+
+      String clientId = properties.getValue(analyticsClientIdKey);
+      if (clientId == null) {
+        clientId = UUID.randomUUID().toString();
+        properties.setValue(analyticsClientIdKey, clientId);
+      }
+
+      final IdeaPluginDescriptor descriptor = PluginManager.getPlugin(FlutterUtils.getPluginId());
+      assert descriptor != null;
+      final ApplicationInfo info = ApplicationInfo.getInstance();
+      analytics = new Analytics(clientId, descriptor.getVersion(), info.getVersionName(), info.getFullVersion());
+
+      // Set up reporting prefs.
+      analytics.setCanSend(getCanReportAnalytics());
+
+      // Send initial loading hit.
+      analytics.sendScreenView("main");
+
+      FlutterSettings.getInstance().sendSettingsToAnalytics(analytics);
+    }
+
+    return analytics;
+  }
+
+  public static boolean getCanReportAnalytics() {
+    final PropertiesComponent properties = PropertiesComponent.getInstance();
+    return !properties.getBoolean(analyticsOptOutKey, false);
+  }
+
+  public static void setCanReportAnalytics(boolean canReportAnalytics) {
+    if (getCanReportAnalytics() != canReportAnalytics) {
+      final boolean wasReporting = getCanReportAnalytics();
+
+      final PropertiesComponent properties = PropertiesComponent.getInstance();
+      properties.setValue(analyticsOptOutKey, !canReportAnalytics);
+      if (analytics != null) {
+        analytics.setCanSend(getCanReportAnalytics());
+      }
+
+      if (!wasReporting && canReportAnalytics) {
+        getAnalytics().sendScreenView("main");
+      }
+    }
+  }
+
+  public static void sendAnalyticsAction(@NotNull AnAction action) {
+    sendAnalyticsAction(action.getClass().getSimpleName());
+  }
+
+  public static void sendAnalyticsAction(@NotNull String name) {
+    getAnalytics().sendEvent("intellij", name);
+  }
+
+  private static void performAndroidStudioCanaryCheck() {
+    if (!FlutterUtils.isAndroidStudio()) {
+      return;
+    }
+
+    final ApplicationInfo info = ApplicationInfo.getInstance();
+    if (info.getFullVersion().contains("Canary") && !info.getBuild().isSnapshot()) {
+      FlutterMessages.showWarning(
+        "Unsupported Android Studio version",
+        "Canary versions of Android Studio are not supported by the Flutter plugin.");
+    }
+  }
+}
