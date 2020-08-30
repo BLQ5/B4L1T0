@@ -1,0 +1,4 @@
+analyzer:
+  exclude:
+    - 'out/**'
+    - 'tool/icon_generator/**'
